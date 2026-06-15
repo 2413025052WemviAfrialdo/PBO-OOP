@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game - OOP Edition</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="/Js/themes.js"></script>
+    <script src="/Js/Board.js"></script>
+    <script src="/Js/NormalBoard.js"></script>
+    <script src="/Js/ObstacleBoard.js"></script>
+    <script src="/Js/Food.js"></script>
+    <script src="/Js/RedFood.js"></script>
+    <script src="/Js/BlueFood.js"></script>
+    <script src="/Js/YellowFood.js"></script>
+    <script src="/Js/GreenFood.js"></script>
+    <script src="/Js/Bomb.js"></script>
+    <script src="/Js/Snake.js"></script>
+    <script src="/Js/FoodManager.js"></script>
+    <script src="/Js/ScoreBoard.js"></script>
+    <script src="/Js/PowerUpTimer.js"></script>
+    <script src="/Js/Game.js"></script>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+    <div id="game-hud" style="display:none; width:100%; gap:8px; flex-wrap:wrap; justify-content:space-between;">
+        <div class="stat-card">
+            <div class="stat-label">Skor</div>
+            <div class="stat-value" id="score-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Rekor</div>
+            <div class="stat-value" id="highscore-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Nyawa</div>
+            <div class="stat-value" id="lives-value">❤️❤️❤️</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Level</div>
+            <div class="stat-value" id="level-value">1</div>
+            <div class="food-progress-wrapper">
+                <div id="food-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+        <div id="screen-menu" class="game-screen">
+            <div class="screen-title neon-text">🐍 SNAKE</div>
+
+            <div class="food-legend">
+                <div class="legend-item"><span class="legend-dot" style="background:#FFEEAA"></span>Normal +10</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#FF4455"></span>🛡 Perisai</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#4488FF"></span>⏱ Lambat</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#FFD700"></span>⚡ Cepat</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#44CC44"></span>×2 Skor</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#222;border:1px solid #888"></span>💣 Bom!</div>
+            </div>
+
+            <ul class="instruction-list">
+                <li>🕹️ Gerak: Panah / WASD</li>
+                <li>⏸ Jeda: P atau Spasi</li>
+                <li>📱 Mobile: Swipe di canvas</li>
+                <li>💥 Tembok / Bom = Game Over!</li>
+                <li>🛡 Perisai melindungi dari tembok & bom</li>
+            </ul>
+
+            <div class="menu-selects">
+                <div>
+                    <label>🎨 Pilih Tema</label>
+                    <select id="theme-select">
+                        <option value="galaxy">🌌 Galaksi (default)</option>
+                        <option value="cloud">☁️ Awan</option>
+                        <option value="forest">🌲 Hutan</option>
+                        <option value="ocean">🌊 Laut</option>
+                    </select>
+                </div>
+                <div>
+                    <label>🗺️ Pilih Papan</label>
+                    <select id="board-select">
+                        <option value="normal">Papan Biasa</option>
+                        <option value="obstacle">Papan Rintangan</option>
+                    </select>
+                </div>
+                
+                <div style="margin-top: 5px;">
+                    <label>🐍 Bentuk Ular</label>
+                    <select id="skin-select">
+                        <option value="Magma Dragon">🔥 Magma Dragon</option>
+                        <option value="Cybernetic">🤖 Cybernetic</option>
+                        <option value="Ghostly">👻 Ghostly</option>
+                    </select>
+                </div>
+            </div> 
+
+            <div class="snake-anim" id="snake-preview" style="margin: 35px auto 25px auto; justify-content: center; transform: scale(2.5);">
+                <img id="preview-tail" src="Asset/Magma Dragon/C2.png" style="animation-delay: 0.4s" class="tail">
+                <img id="preview-body" src="Asset/Magma Dragon/A2.png" style="animation-delay: 0.2s">
+                <img id="preview-head" src="Asset/Magma Dragon/H1.png" style="animation-delay: 0s">
+            </div>
+            
+            <button id="btn-start" class="btn" style="max-width:260px; margin-top:5px; font-size: 1rem; padding: 12px;">
+                ▶ MULAI BERMAIN
+            </button>
+        </div>
+
+        <div id="screen-gameover" class="game-screen hidden">
+            <div class="screen-title">💀 GAME OVER</div>
+            <div class="death-reason" id="death-reason"></div>
+
+            <div class="final-score-panel">
+                <div class="final-row"><span>Skor Akhir:</span><span id="final-score">0</span></div>
+                <div class="final-row"><span>Rekor:</span><span id="final-high">0</span></div>
+            </div>
+
+            <button id="btn-restart" class="btn" style="max-width:220px">🔄 Main Lagi</button>
+            <button id="btn-menu" class="btn btn-danger" style="max-width:220px">🏠 Menu Utama</button>
+        </div>
+
+    </div> <div class="bottom-panel" id="dpad-panel" style="display:none; width:100%; gap:8px; flex-wrap:wrap; justify-content:space-between; align-items:flex-start;">
+        <div class="mobile-dpad">
+            <button id="btn-up"    class="dpad-btn">▲</button>
+            <button id="btn-left"  class="dpad-btn">◀</button>
+            <button id="btn-right" class="dpad-btn">▶</button>
+            <button id="btn-down"  class="dpad-btn">▼</button>
+        </div>
+
+        <div class="panel" style="flex:1;" id="powerup-panel">
+            <div class="panel-title">Power-Up Aktif</div>
+            <div id="powerup-display"></div>
+        </div>
+
+        <div class="panel" id="ctrl-panel">
+            <div class="panel-title">Kontrol</div>
+            <button id="btn-pause" class="btn btn-sm">⏸ Jeda / Lanjut</button>
+        </div>
+    </div>
+
+    <div id="skin-modal" class="modal-overlay hidden">
+        <div class="skin-modal-content">
+            <h3 style="margin-bottom: 15px; color: var(--title-color);">Pilih Bentuk Ular</h3>
+            <div class="skin-list">
+                
+                <div class="skin-card" data-skin="Magma Dragon" data-label="🔥 Magma Dragon">
+                    <div class="snake-anim">
+                        <img src="Asset/Magma Dragon/C2.png" style="animation-delay: 0.4s" class="tail">
+                        <img src="Asset/Magma Dragon/A2.png" style="animation-delay: 0.2s">
+                        <img src="Asset/Magma Dragon/H1.png" style="animation-delay: 0s">
+                    </div>
+                    <span>🔥 Magma Dragon</span>
+                </div>
+
+                <div class="skin-card" data-skin="Cybernetic" data-label="🤖 Cybernetic">
+                    <div class="snake-anim">
+                        <img src="Asset/Cybernetic/C2.png" style="animation-delay: 0.4s" class="tail">
+                        <img src="Asset/Cybernetic/A2.png" style="animation-delay: 0.2s">
+                        <img src="Asset/Cybernetic/H1.png" style="animation-delay: 0s">
+                    </div>
+                    <span>🤖 Cybernetic</span>
+                </div>
+
+                <div class="skin-card" data-skin="Ghostly" data-label="👻 Ghostly">
+                    <div class="snake-anim">
+                        <img src="Asset/Ghostly/C2.png" style="animation-delay: 0.4s" class="tail">
+                        <img src="Asset/Ghostly/A2.png" style="animation-delay: 0.2s">
+                        <img src="Asset/Ghostly/H1.png" style="animation-delay: 0s">
+                    </div>
+                    <span>👻 Ghostly</span>
+                </div>
+
+            </div>
+            <button id="btn-close-skin" class="btn btn-danger" style="margin-top:20px;">Tutup</button>
+        </div>
+    </div>
+
+</div> <audio id="bg-music" src="Audio/game1.mp3" loop></audio>
+<audio id="gameover-sound" src="Audio/game2.mp3"></audio> 
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    window.game = new Game();
+
+    const bgMusic = document.getElementById("bg-music");
+
+    document.addEventListener("click", () => {
+        console.log("KLIK TERDETEK"); 
+
+        if (bgMusic) {
+            bgMusic.volume = 0.3;
+            bgMusic.play()
+                .then(() => console.log("MUSIC JALAN"))
+                .catch(err => console.log("ERROR:", err));
+        }
+    }, { once: true });
+});
+</script>
+
+</body>
+</html>
